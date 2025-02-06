@@ -1,6 +1,21 @@
 include .env
 export
 
+#! Go local
+_mkdir_bin:
+	mkdir -p bin
+_build_producer:
+	@go build -o ./bin/producer ./cmd/producer/main.go
+_build_consumer:
+	@go build -o ./bin/consumer ./cmd/consumer/main.go
+build: _mkdir_bin _build_producer _build_consumer
+
+run_producer: _build_producer
+	./bin/producer
+run_consumer: _build_consumer
+	./bin/consumer
+
+#! Docker-compose
 up:
 	docker-compose up -d
 	make status
@@ -13,8 +28,21 @@ status:
 healthcheck:
 	@./bash_scripts/kafka_healthcheck.sh
 
+init_kafka:
+	@./bash_scripts/kafka_init.sh
+
+reinit_kafka:
+	@./bash_scripts/kafka_delete_topic.sh
+	@./bash_scripts/kafka_init.sh
+
 list_topics:
 	@./bash_scripts/kafka_list_topics.sh
+
+describe_topic:
+	@./bash_scripts/kafka_describe_topic.sh
+
+delete_records:
+	@./bash_scripts/kafka_delete_records.sh
 
 #! Mount persistant volumes
 MNT_1=./mnt/kafka-data-1

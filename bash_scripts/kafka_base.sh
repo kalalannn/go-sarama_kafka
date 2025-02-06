@@ -22,11 +22,33 @@ function create_topic {
         --bootstrap-server $BOOTSTRAP_SERVER_ALL
 }
 
+function delete_topic {
+    topic_name=$1
+    docker exec -it $BROKER_1 kafka-topics \
+        --delete --topic $topic_name \
+        --bootstrap-server $BOOTSTRAP_SERVER_ALL
+}
+
 function list_topics {
 	docker exec -it $BROKER_1 kafka-topics \
 		--list \
 		--bootstrap-server $BOOTSTRAP_SERVER_ALL
 }
 
+function describe_topic {
+    topic_name=$1
+    docker exec -it $BROKER_1 kafka-topics \
+        --describe --topic $topic_name \
+        --bootstrap-server $BOOTSTRAP_SERVER_ALL
+}
 
-export -f healthcheck create_topic list_topics
+function delete_records {
+    json_file=$1
+    cat $json_file | \
+    docker exec -i $BROKER_1 kafka-delete-records \
+        --offset-json-file /dev/stdin \
+        --bootstrap-server $BOOTSTRAP_SERVER_ALL
+}
+
+
+export -f healthcheck create_topic list_topics describe_topic delete_records
