@@ -14,6 +14,9 @@ func main() {
 	topic := "test"
 
 	config := sarama.NewConfig()
+	config.Producer.Idempotent = true
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Net.MaxOpenRequests = 1
 	config.Producer.Return.Successes = true
 	config.Producer.Retry.Max = 5
 	config.Producer.Retry.Backoff = 100 * time.Millisecond
