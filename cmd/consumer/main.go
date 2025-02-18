@@ -12,6 +12,51 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// max 10 goroutines for each partition (partitions_count = 3)
+const maxMessageGoroutines = 5
+
+type ConsumerHandler struct{}
+
+func (h *ConsumerHandler) Setup(sarama.ConsumerGroupSession) error   { return nil }
+func (h *ConsumerHandler) Cleanup(sarama.ConsumerGroupSession) error { return nil }
+
+func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	var wg sync.WaitGroup
+	guardChan := make(chan struct{}, maxMessageGoroutines)
+
+	for message := range claim.Messages() {
+		guardChan <- struct{}{}
+		wg.Add(1)
+		go func(message *sarama.ConsumerMessage) {
+			defer wg.Done()
+			defer func() { <-guardChan }()
+
+			select {
+			case <-session.Context().Done():
+				return
+			default:
+				timeToProcess := time.Duration(rand.Intn(3) + 2)
+				log.Printf("Processing ... (%s:%d:%d): %s (%ds)\n",
+					message.Topic, message.Partition, message.Offset, message.Key, timeToProcess)
+
+				// Process simulation
+				time.Sleep(timeToProcess * time.Second)
+
+				// Mark as processed
+				session.MarkMessage(message, string(message.Key))
+
+				log.Printf("Processed successfully. (%s)", message.Key)
+			}
+		}(message)
+	}
+
+	// Wait for all messages to be processed and commit
+	wg.Wait()
+	session.Commit()
+
+	return nil
+}
+
 func main() {
 	brokers := []string{"localhost:29092", "localhost:39092", "localhost:49092"}
 	topic := "test"
@@ -58,42 +103,4 @@ func main() {
 
 	wg.Wait()
 	log.Println("Consumer gracefully stopped.")
-}
-
-type ConsumerHandler struct{}
-
-func (h *ConsumerHandler) Setup(sarama.ConsumerGroupSession) error   { return nil }
-func (h *ConsumerHandler) Cleanup(sarama.ConsumerGroupSession) error { return nil }
-
-func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	var wg sync.WaitGroup
-	for message := range claim.Messages() {
-		wg.Add(1)
-		go func(message *sarama.ConsumerMessage) {
-			defer wg.Done()
-
-			select {
-			case <-session.Context().Done():
-				return
-			default:
-				timeToProcess := time.Duration(rand.Intn(3) + 2)
-				log.Printf("Processing ... (%s:%d:%d): %s (%ds)\n",
-					message.Topic, message.Partition, message.Offset, message.Key, timeToProcess)
-
-				// Process simulation
-				time.Sleep(timeToProcess * time.Second)
-
-				// Mark as processed
-				session.MarkMessage(message, string(message.Key))
-
-				log.Printf("Processed successfully. (%s)", message.Key)
-			}
-		}(message)
-	}
-
-	// Wait for all messages to be processed and commit
-	wg.Wait()
-	session.Commit()
-
-	return nil
 }
