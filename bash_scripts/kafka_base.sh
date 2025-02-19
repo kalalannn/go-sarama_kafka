@@ -17,8 +17,9 @@ function healthcheck {
 
 function create_topic {
     topic_name=$1
+    partitions_count=$2
     docker exec -it $BROKER_1 kafka-topics \
-        --create --topic $topic_name --partitions 3 --replication-factor 3 \
+        --create --topic $topic_name --partitions $partitions_count --replication-factor 3 \
         --bootstrap-server $BOOTSTRAP_SERVER_ALL
 }
 

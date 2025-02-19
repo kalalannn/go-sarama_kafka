@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"math/rand"
 	"os/signal"
@@ -12,7 +13,7 @@ import (
 	"github.com/IBM/sarama"
 )
 
-// max 10 goroutines for each partition (partitions_count = 3)
+// max 10 goroutines for each partition (partitions_count = 10)
 const maxMessageGoroutines = 5
 
 type ConsumerHandler struct{}
@@ -35,9 +36,11 @@ func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			case <-session.Context().Done():
 				return
 			default:
-				timeToProcess := time.Duration(rand.Intn(3) + 2)
-				log.Printf("Processing ... (%s:%d:%d): %s (%ds)\n",
-					message.Topic, message.Partition, message.Offset, message.Key, timeToProcess)
+				timeToProcess := time.Duration(rand.Intn(3) + 1)
+				// log.Printf("...(%s:%d:%d): %s (%ds)\n",
+				// 	message.Topic, message.Partition, message.Offset, message.Key, timeToProcess)
+				log.Printf("...(%s:%d:%d): (%ds)\n",
+					message.Topic, message.Partition, message.Offset, timeToProcess)
 
 				// Process simulation
 				time.Sleep(timeToProcess * time.Second)
@@ -45,7 +48,9 @@ func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 				// Mark as processed
 				session.MarkMessage(message, string(message.Key))
 
-				log.Printf("Processed successfully. (%s)", message.Key)
+				// log.Printf("OK.(%s)", message.Key)
+				log.Printf("OK(%s:%d:%d): (%ds)\n",
+					message.Topic, message.Partition, message.Offset, timeToProcess)
 			}
 		}(message)
 	}
@@ -58,9 +63,15 @@ func (h *ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 }
 
 func main() {
-	brokers := []string{"localhost:29092", "localhost:39092", "localhost:49092"}
-	topic := "test"
-	groupID := "test-group"
+	log.SetFlags(log.Ltime)
+
+	brokers := []string{"localhost:29091", "localhost:29092", "localhost:29093", "localhost:29094", "localhost:29095"}
+
+	var topic string
+	var groupID string
+	flag.StringVar(&topic, "topic", "test-1", "Topic name")
+	flag.StringVar(&groupID, "group", "test-1-group", "Consumer group")
+	flag.Parse()
 
 	config := sarama.NewConfig()
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
@@ -83,7 +94,7 @@ func main() {
 
 	handler := &ConsumerHandler{}
 
-	log.Println("Waiting for messages...")
+	log.Printf("Waiting for messages %s (%s) ...", topic, groupID)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {

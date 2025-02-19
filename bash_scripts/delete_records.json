@@ -1,7 +1,24 @@
 {
     "partitions": [
-        {"topic": "test", "partition": 0, "offset": -1},
-        {"topic": "test", "partition": 1, "offset": -1},
-        {"topic": "test", "partition": 2, "offset": -1}
+        {"topic": "test-1", "partition": 0, "offset": -1},
+        {"topic": "test-1", "partition": 1, "offset": -1},
+        {"topic": "test-1", "partition": 2, "offset": -1},
+        {"topic": "test-1", "partition": 3, "offset": -1},
+        {"topic": "test-1", "partition": 4, "offset": -1},
+        {"topic": "test-1", "partition": 5, "offset": -1},
+        {"topic": "test-1", "partition": 6, "offset": -1},
+        {"topic": "test-1", "partition": 7, "offset": -1},
+        {"topic": "test-1", "partition": 8, "offset": -1},
+        {"topic": "test-1", "partition": 9, "offset": -1},
+        {"topic": "test-2", "partition": 0, "offset": -1},
+        {"topic": "test-2", "partition": 1, "offset": -1},
+        {"topic": "test-2", "partition": 2, "offset": -1},
+        {"topic": "test-2", "partition": 3, "offset": -1},
+        {"topic": "test-2", "partition": 4, "offset": -1},
+        {"topic": "test-2", "partition": 5, "offset": -1},
+        {"topic": "test-2", "partition": 6, "offset": -1},
+        {"topic": "test-2", "partition": 7, "offset": -1},
+        {"topic": "test-2", "partition": 8, "offset": -1},
+        {"topic": "test-2", "partition": 9, "offset": -1}
     ]
 }

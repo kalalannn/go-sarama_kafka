@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"time"
@@ -10,13 +11,19 @@ import (
 )
 
 func main() {
-	brokers := []string{"localhost:29092", "localhost:39092", "localhost:49092"}
-	topic := "test"
+	brokers := []string{"localhost:29091", "localhost:29092", "localhost:29093", "localhost:29094", "localhost:29095"}
+
+	var topic string
+	var count int
+
+	flag.IntVar(&count, "count", 100, "Count of events")
+	flag.StringVar(&topic, "topic", "test-1", "Topic name")
+	flag.Parse()
 
 	config := sarama.NewConfig()
-	config.Producer.Idempotent = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Net.MaxOpenRequests = 1
+	// config.Producer.Idempotent = true
+	// config.Producer.RequiredAcks = sarama.WaitForAll
+	// config.Net.MaxOpenRequests = 1
 	config.Producer.Return.Successes = true
 	config.Producer.Retry.Max = 5
 	config.Producer.Retry.Backoff = 100 * time.Millisecond
@@ -32,12 +39,12 @@ func main() {
 		}
 	}()
 
-	for i := 0; i < 21; i++ {
+	for i := 0; i < count; i++ {
 		key := uuid.New().String()
 		msg := &sarama.ProducerMessage{
 			Topic: topic,
 			Key:   sarama.StringEncoder(key),
-			Value: sarama.StringEncoder(fmt.Sprintf("Hello World %d", i)),
+			Value: sarama.StringEncoder(fmt.Sprintf("Value: %d", i)),
 		}
 		if _, _, err := producer.SendMessage(msg); err != nil {
 			log.Fatalf("Failed to produce message: %v", err)

@@ -79,7 +79,61 @@ services:
       timeout: 30s
       retries: 30
 
+  kafka-4:
+    image: ${KAFKA_IMAGE}
+    container_name: ${BROKER_4}
+    restart: on-failure
+    ports:
+      - ${BROKER_4_EXTERNAL_PORT}:${BROKER_PORT}
+    volumes:
+      - kafka-data-4:/var/lib/kafka/data
+    environment:
+      CLUSTER_ID: ${CLUSTER_ID}
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: ${ROLE_BROKER_CONTROLLER}
+      KAFKA_LISTENERS: 'PLAINTEXT://:${INTERNAL_PORT},PLAINTEXT_HOST://:${BROKER_PORT},CONTROLLER://:${CONTROLLER_PORT}'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${BROKER_4_INTERNAL_ADDR},PLAINTEXT_HOST://${BROKER_4_LISTENER_ADDR}'
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: kafka-cluster cluster-id --bootstrap-server ${BROKER_4_INTERNAL_ADDR} || exit 1
+      interval: 1s
+      timeout: 30s
+      retries: 30
+
+  kafka-5:
+    image: ${KAFKA_IMAGE}
+    container_name: ${BROKER_5}
+    restart: on-failure
+    ports:
+      - ${BROKER_5_EXTERNAL_PORT}:${BROKER_PORT}
+    volumes:
+      - kafka-data-5:/var/lib/kafka/data
+    environment:
+      CLUSTER_ID: ${CLUSTER_ID}
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: ${ROLE_BROKER_CONTROLLER}
+      KAFKA_LISTENERS: 'PLAINTEXT://:${INTERNAL_PORT},PLAINTEXT_HOST://:${BROKER_PORT},CONTROLLER://:${CONTROLLER_PORT}'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${BROKER_5_INTERNAL_ADDR},PLAINTEXT_HOST://${BROKER_5_LISTENER_ADDR}'
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: kafka-cluster cluster-id --bootstrap-server ${BROKER_5_INTERNAL_ADDR} || exit 1
+      interval: 1s
+      timeout: 30s
+      retries: 30
+
 volumes:
   kafka-data-1:
   kafka-data-2:
   kafka-data-3:
+  kafka-data-4:
+  kafka-data-5:
